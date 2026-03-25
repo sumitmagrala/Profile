@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Are You?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            overflow: hidden;
+        }
+
+        /* Animated Background Shapes */
+        .shape {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: move 20s infinite alternate;
+        }
+        .shape-1 { width: 300px; height: 300px; background: #4f46e5; top: -10%; left: -10%; }
+        .shape-2 { width: 400px; height: 400px; background: #7c3aed; bottom: -10%; right: -10%; animation-delay: -5s; }
+        
+        @keyframes move {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(100px, 100px) rotate(90deg); }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .scan-line {
+            height: 2px;
+            background: linear-gradient(to right, transparent, #818cf8, transparent);
+            width: 100%;
+            position: absolute;
+            top: 0;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .reveal-anim {
+            animation: revealScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes revealScale {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+    <!-- Background Decoration -->
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+
+    <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center relative overflow-hidden">
+        <div id="scanner" class="hidden scan-line"></div>
+        
+        <div id="initial-state">
+            <div class="mb-8">
+                <div class="w-20 h-20 bg-indigo-500/20 rounded-2xl mx-auto flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">Identity Discovery</h1>
+                <p class="text-indigo-200/60 mt-2">Tap below to analyze your essence.</p>
+            </div>
+            
+            <button 
+                id="reveal-btn"
+                class="group relative w-full bg-white text-indigo-950 font-bold py-5 px-8 rounded-2xl shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 touch-manipulation overflow-hidden"
+            >
+                <span class="relative z-10">Find who are you</span>
+                <div class="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </button>
+        </div>
+
+        <div id="loading-state" class="hidden py-12">
+            <div class="flex flex-col items-center">
+                <div class="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-400 rounded-full animate-spin mb-4"></div>
+                <p class="text-indigo-200 font-medium animate-pulse">Analyzing DNA patterns...</p>
+            </div>
+        </div>
+
+        <div id="result-area" class="hidden">
+            <div class="reveal-anim">
+                <div class="mb-6">
+                    <div class="inline-flex p-4 rounded-full bg-green-500/20 text-green-400 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h2 class="text-indigo-200 uppercase tracking-[0.2em] text-sm font-bold mb-2">Analysis Complete</h2>
+                    <p class="text-4xl font-extrabold text-white leading-tight">You're special</p>
+                </div>
+                
+                <p class="text-indigo-200/50 mb-8 italic">Confirmed by the universe.</p>
+                
+                <button 
+                    onclick="resetPage()"
+                    class="text-indigo-400 hover:text-white transition-colors text-sm font-semibold tracking-wide"
+                >
+                    RESET SYSTEM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const revealBtn = document.getElementById('reveal-btn');
+        const initialState = document.getElementById('initial-state');
+        const loadingState = document.getElementById('loading-state');
+        const resultArea = document.getElementById('result-area');
+        const scanner = document.getElementById('scanner');
+
+        revealBtn.addEventListener('click', () => {
+            // Step 1: Loading/Scanning
+            initialState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            scanner.classList.remove('hidden');
+
+            // Simulate "Analysis"
+            setTimeout(() => {
+                loadingState.classList.add('hidden');
+                scanner.classList.add('hidden');
+                resultArea.classList.remove('hidden');
+                
+                // Fire confetti!
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#818cf8', '#ffffff', '#c084fc']
+                });
+            }, 2000);
+        });
+
+        function resetPage() {
+            resultArea.classList.add('hidden');
+            initialState.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
